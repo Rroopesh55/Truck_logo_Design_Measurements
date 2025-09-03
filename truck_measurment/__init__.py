@@ -7,8 +7,8 @@ surface using real-world dimensions.
 """
 
 __version__ = "1.0.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+__author__ = "Rroopesh Hari"
+__email__ = "rroopesh.hari@okstate.edu"
 __description__ = "Computer vision system for measuring objects on trucks"
 
 from .main import TruckMeasurementSystem, main
