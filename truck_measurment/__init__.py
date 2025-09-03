@@ -1,7 +1,7 @@
 """
 Truck Measurement System
 
-A computer vision application that automatically detects trucks in images 
+A computer vision application using OpenCV and YOLO that automatically detects trucks in images 
 and allows users to measure logos, designs, or other objects on the truck 
 surface using real-world dimensions.
 """
