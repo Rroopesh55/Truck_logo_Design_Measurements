@@ -1,0 +1,22 @@
+[global]
+# Development settings
+developmentMode = false
+
+[server]
+# Server settings
+port = 8501
+enableCORS = false
+enableXsrfProtection = true
+maxUploadSize = 200
+
+[browser]
+# Browser settings
+gatherUsageStats = false
+
+[theme]
+# App theme
+primaryColor = "#2e86ab"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f8ff"
+textColor = "#1e3d59"
+font = "sans serif"
