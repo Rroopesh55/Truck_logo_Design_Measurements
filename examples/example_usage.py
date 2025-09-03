@@ -11,14 +11,12 @@ import numpy as np
 import logging
 from pathlib import Path
 
-# Import the truck measurement system components
-from truck_measurement import (
-    TruckMeasurementSystem,
-    TruckDetector,
-    TruckClassifier,
-    MeasurementCalculator,
-    ImageVisualizer
-)
+from truck_measurement.detector import TruckDetector
+from truck_measurement.classifier import TruckClassifier
+from truck_measurement.measurement import MeasurementCalculator
+from truck_measurement.visualizer import ImageVisualizer
+from truck_measurement.main import TruckMeasurementSystem
+from truck_measurement.config import RESIZE_SCALE, CONFIDENCE_THRESHOLD, NMS_THRESHOLD
 from truck_measurement.utils import setup_logging
 
 
