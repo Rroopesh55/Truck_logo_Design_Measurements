@@ -7,15 +7,15 @@ REQUIRED_PACKAGES = ["streamlit", "ultralytics", "opencv-python", "numpy", "Pill
 
 
 def install_requirements():
-for package in REQUIRED_PACKAGES:
-try:
-__import__(package.split("==")[0])
-except ImportError:
-print(f"Installing {package}...")
-subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+	for package in REQUIRED_PACKAGES:
+		try:
+			__import__(package.split("==")[0])
+		except ImportError:
+			print(f"Installing {package}...")
+			subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 
 if __name__ == "__main__":
-install_requirements()
-print("Launching Streamlit App...")
-os.system("streamlit run app.py")
+	install_requirements()
+	print("Launching Streamlit App...")
+	os.system("streamlit run app.py")

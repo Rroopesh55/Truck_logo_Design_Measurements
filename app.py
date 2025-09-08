@@ -8,6 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import streamlit as st
+import cv2
 import numpy as np
 from PIL import Image
 import cv2
@@ -24,14 +25,19 @@ st.title("🚛 Truck Measurement App")
 st.write("Upload a truck image to detect the truck and estimate real-world measurements.")
 
 uploaded_file = st.file_uploader("Upload a truck image", type=["jpg", "jpeg", "png"])
+logo_template_file = st.file_uploader("Upload a logo template (for automatic detection)", type=["jpg", "jpeg", "png"], key="logo_template")
 
 # ---- Initialize components once per session ----
 if "detector" not in st.session_state:
-    with st.spinner("Loading models... (first run may download YOLO weights)"):
-        st.session_state.detector = TruckDetector()
-        st.session_state.classifier = TruckClassifier()
-        st.session_state.calculator = MeasurementCalculator()
-        st.session_state.visualizer = ImageVisualizer()
+    try:
+        with st.spinner("Loading models... (first run may download YOLO weights)"):
+            st.session_state.detector = TruckDetector()
+            st.session_state.classifier = TruckClassifier()
+            st.session_state.calculator = MeasurementCalculator()
+            st.session_state.visualizer = ImageVisualizer()
+    except Exception as e:
+        st.error(f"Error loading models: {e}")
+        st.stop()
 
 detector = st.session_state.detector
 classifier = st.session_state.classifier
@@ -47,11 +53,41 @@ def cv2_to_pil(bgr_img: np.ndarray) -> Image.Image:
 
 if uploaded_file is not None:
     # Read and convert uploaded image
-    pil_img = Image.open(uploaded_file).convert("RGB")
-    image_np = np.array(pil_img)  # RGB np array
+    try:
+        pil_img = Image.open(uploaded_file).convert("RGB")
+        image_np = np.array(pil_img)  # RGB np array
+        # OpenCV expects BGR; our visualizer draws in BGR
+        bgr_img = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        st.error(f"Error reading image: {e}")
+        st.stop()
 
-    # OpenCV expects BGR; our visualizer draws in BGR
-    bgr_img = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+    # --- Automatic logo detection using template matching ---
+    if logo_template_file is not None:
+        try:
+            logo_pil = Image.open(logo_template_file).convert("RGB")
+            logo_np = np.array(logo_pil)
+            logo_bgr = cv2.cvtColor(logo_np, cv2.COLOR_RGB2BGR)
+            res = cv2.matchTemplate(bgr_img, logo_bgr, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+            threshold = 0.6  # You can adjust this
+            if max_val >= threshold:
+                lx, ly = max_loc
+                lw, lh = logo_bgr.shape[1], logo_bgr.shape[0]
+                # Draw rectangle on detected logo
+                cv2.rectangle(bgr_img, (lx, ly), (lx + lw, ly + lh), (0, 0, 255), 2)
+                st.success(f"Logo detected at ({lx}, {ly}) with size {lw}x{lh} pixels. Confidence: {max_val:.2f}")
+                # If truck detected, measure logo size in meters
+                if 'pixels_per_meter' in locals():
+                    logo_width_m = lw / pixels_per_meter
+                    logo_height_m = lh / pixels_per_meter
+                    st.caption(f"Logo size: {logo_width_m:.2f} m x {logo_height_m:.2f} m (auto-detected)")
+            else:
+                st.warning("Logo not confidently detected. Try a clearer template or adjust threshold.")
+        except Exception as e:
+            st.error(f"Error processing logo template: {e}")
+
+    # Manual logo selection removed; use automatic template matching below
 
     # Detect trucks
     with st.spinner("Detecting truck..."):
@@ -93,5 +129,7 @@ if uploaded_file is not None:
 
         area_m2 = width_m * height_m
         st.caption(f"Approx area: {area_m2:.3f} m²")
+
+    # Logo measurement now handled by template matching above
 else:
     st.info("⬆️ Upload a JPG/PNG to get started.")
